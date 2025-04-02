@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { TaskDto } from './task.dto';
+import { FindAllParameters, TaskDto } from './task.dto';
 
 @Injectable() // Indica que essa classe pode ser injetada em outras partes do aplicativo como um serviço
 export class TaskService {
@@ -30,6 +30,25 @@ export class TaskService {
     );
   }
 
+  findAll(params: FindAllParameters): TaskDto[] {
+    // Filtra a lista de tarefas com base nos parâmetros recebidos na requisição
+    return this.tasks.filter((t) => {
+      let match = true;
+
+      // Filtra por título, se o parâmetro 'title' for fornecido
+      if (params.title != undefined && !t.title.includes(params.title)) {
+        match = false;
+      }
+
+      // Filtra por status, se o parâmetro 'status' for fornecido
+      if (params.status != undefined && !t.status.includes(params.status)) {
+        match = false;
+      }
+
+      return match;
+    });
+  }
+
   update(task: TaskDto) {
     // Encontra o índice da tarefa na lista com base no ID
     const taskIndex = this.tasks.findIndex((t) => t.id === task.id);
@@ -43,6 +62,23 @@ export class TaskService {
     // Se a tarefa não for encontrada, lança uma exceção HTTP 400 (Bad Request)
     throw new HttpException(
       `Task with id ${task.id} not found`,
+      HttpStatus.BAD_REQUEST,
+    );
+  }
+
+  remove(id: string) {
+    // Encontra o índice da tarefa na lista com base no ID
+    const taskIndex = this.tasks.findIndex((t) => t.id === id);
+
+    if (taskIndex >= 0) {
+      // Se a tarefa for encontrada, remove-a da lista
+      this.tasks.splice(taskIndex, 1);
+      return;
+    }
+
+    // Se a tarefa não for encontrada, lança uma exceção HTTP 400 (Bad Request)
+    throw new HttpException(
+      `Task with id ${id} not found`,
       HttpStatus.BAD_REQUEST,
     );
   }
