@@ -2,10 +2,11 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TaskModule } from './task/task.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   // Importa módulos que serão utilizados dentro do AppModule
-  imports: [TaskModule],
+  imports: [TaskModule, UsersModule],
 
   // Define os controladores que lidam com as requisições HTTP
   controllers: [AppController],
