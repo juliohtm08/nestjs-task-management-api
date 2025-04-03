@@ -9,8 +9,12 @@ export class UsersService {
 
   create(NewUser: UserDto) {
     NewUser.id = uuid();
-    NewUser.password = bcryptHashSync(NewUser.password, 10);
+    NewUser.password = bcryptHashSync(NewUser.password, 10); // Hasheia a senha antes de armazená-la
+
     this.users.push(NewUser);
-    console.log(this.users);
+  }
+
+  findByUserName(username: string): UserDto | null {
+    return this.users.find((user) => user.username === username) || null;
   }
 }
