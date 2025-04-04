@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { FindAllParameters, TaskDto } from './task.dto';
+import { FindAllParameters, TaskDto, TaskStatusEnum } from './task.dto';
+import { v4 as uuid } from 'uuid';
 
 @Injectable() // Indica que essa classe pode ser injetada em outras partes do aplicativo como um serviço
 export class TaskService {
@@ -7,11 +8,11 @@ export class TaskService {
   private tasks: TaskDto[] = [];
 
   create(task: TaskDto) {
+    task.id = uuid();
+    task.status = TaskStatusEnum.TO_DO;
+
     // Adiciona a nova tarefa à lista de tarefas
     this.tasks.push(task);
-
-    // Exibe a lista de tarefas no console (apenas para depuração)
-    console.log(this.tasks);
   }
 
   findById(id: string): TaskDto {
