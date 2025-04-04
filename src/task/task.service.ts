@@ -8,8 +8,8 @@ export class TaskService {
   private tasks: TaskDto[] = [];
 
   create(task: TaskDto) {
-    task.id = uuid();
-    task.status = TaskStatusEnum.TO_DO;
+    task.id = uuid(); // gera automaticamente o ID
+    task.status = TaskStatusEnum.TO_DO; // padroniza o status inicialmente como 'TO_DO'
 
     // Adiciona a nova tarefa à lista de tarefas
     this.tasks.push(task);
