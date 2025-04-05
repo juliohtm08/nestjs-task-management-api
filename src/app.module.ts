@@ -5,6 +5,7 @@ import { TaskModule } from './task/task.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
+import { DbModule } from './db/db.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { ConfigModule } from '@nestjs/config';
     TaskModule, // Módulo responsável pelo gerenciamento de tarefas
     UsersModule, // Módulo responsável pelo gerenciamento de usuários
     AuthModule, // Módulo responsável pela autenticação
+    DbModule,
   ],
 
   // Define os controladores que lidam com as requisições HTTP

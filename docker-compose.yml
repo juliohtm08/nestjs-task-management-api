@@ -1,0 +1,12 @@
+version: '3.8'  # Define a versão do Docker Compose
+
+services:
+  postgres:
+    image: postgres:latest  # Utiliza a imagem mais recente do PostgreSQL
+    container_name: task-management-api-db  # Define o nome do container
+    ports:
+      - "5432:5432"  # Mapeia a porta 5432 do host para a porta 5432 do container (padrão do PostgreSQL)
+    environment:
+      POSTGRES_DB: task-management-api  # Nome do banco de dados a ser criado
+      POSTGRES_USER: postgres  # Nome do usuário do banco de dados
+      POSTGRES_PASSWORD: q1w2e3r4  # Senha do usuário do banco de dados
