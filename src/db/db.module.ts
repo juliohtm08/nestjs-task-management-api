@@ -9,7 +9,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       useFactory: async (configService: ConfigService) => ({
         type: 'postgres', // Define o tipo do banco como PostgreSQL
         host: configService.get<string>('DB_HOST'), // Host do banco de dados
-        port: +configService.get<number>('DB_PORT')!, // Porta do banco (força a conversão para número)
+        port: +configService.get<number>('DB_PORT')!, // Porta do banco
         username: configService.get<string>('DB_USERNAME'), // Usuário do banco
         password: configService.get<string>('DB_PASSWORD'), // Senha do banco
         database: configService.get<string>('DB_NAME'), // Nome do banco de dados
@@ -21,4 +21,4 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     }),
   ],
 })
-export class DbModule {} // Exporta o módulo de banco de dados
+export class DbModule {}
