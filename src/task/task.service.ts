@@ -1,86 +1,103 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { FindAllParameters, TaskDto, TaskStatusEnum } from './task.dto';
 import { v4 as uuid } from 'uuid';
+import { InjectRepository } from '@nestjs/typeorm';
+import { TaskEntity } from 'src/db/entities/task.entity';
+import { FindOptionsWhere, Like, Repository } from 'typeorm';
 
 @Injectable() // Indica que essa classe pode ser injetada em outras partes do aplicativo como um serviço
 export class TaskService {
-  // Lista privada para armazenar as tarefas temporariamente em memória
+  constructor(
+    @InjectRepository(TaskEntity)
+    private readonly taskRepository: Repository<TaskEntity>,
+  ) {}
+
   private tasks: TaskDto[] = [];
 
-  create(task: TaskDto) {
-    task.id = uuid(); // gera automaticamente o ID
-    task.status = TaskStatusEnum.TO_DO; // padroniza o status inicialmente como 'TO_DO'
+  async create(task: TaskDto) {
+    const taskToSave: TaskEntity = {
+      title: task.title,
+      description: task.description,
+      expirationDate: task.expirationDate,
+      status: TaskStatusEnum.TO_DO,
+    };
 
-    // Adiciona a nova tarefa à lista de tarefas
-    this.tasks.push(task);
+    const createdTask = await this.taskRepository.save(taskToSave);
+
+    return this.mapEntityToDto(createdTask);
   }
 
-  findById(id: string): TaskDto {
-    // Filtra a lista para encontrar a tarefa com o ID correspondente
-    const foundTask = this.tasks.filter((t) => t.id === id);
+  async findById(id: string): Promise<TaskDto> {
+    const foundTask = await this.taskRepository.findOne({ where: { id } });
 
-    // Se a tarefa for encontrada, retorna o primeiro elemento (único, pois IDs são únicos)
-    if (foundTask.length) {
-      return foundTask[0];
+    if (!foundTask) {
+      throw new HttpException(
+        `Task with id ${id} not found`,
+        HttpStatus.NOT_FOUND,
+      );
     }
 
-    // Se a tarefa não for encontrada, lança uma exceção HTTP 404 (Not Found)
-    throw new HttpException(
-      `Task with id ${id} not found`,
-      HttpStatus.NOT_FOUND,
-    );
+    return this.mapEntityToDto(foundTask);
   }
 
-  findAll(params: FindAllParameters): TaskDto[] {
-    // Filtra a lista de tarefas com base nos parâmetros recebidos na requisição
-    return this.tasks.filter((t) => {
-      let match = true;
+  async findAll(params: FindAllParameters): Promise<TaskDto[]> {
+    const searchParams: FindOptionsWhere<TaskEntity> = {};
 
-      // Filtra por título, se o parâmetro 'title' for fornecido
-      if (params.title != undefined && !t.title.includes(params.title)) {
-        match = false;
-      }
+    if (params.title) {
+      searchParams.title = Like(`%${params.title}%`);
+    }
 
-      // Filtra por status, se o parâmetro 'status' for fornecido
-      if (params.status != undefined && !t.status.includes(params.status)) {
-        match = false;
-      }
+    if (params.status) {
+      searchParams.status = Like(`%${params.status}%`);
+    }
 
-      return match;
+    const taskFound = await this.taskRepository.find({
+      where: searchParams,
     });
+
+    return taskFound.map((taskEntity) => this.mapEntityToDto(taskEntity));
   }
 
-  update(task: TaskDto) {
-    // Encontra o índice da tarefa na lista com base no ID
-    const taskIndex = this.tasks.findIndex((t) => t.id === task.id);
+  async update(id: string, task: TaskDto) {
+    const foundTask = await this.taskRepository.findOne({ where: { id } });
 
-    if (taskIndex >= 0) {
-      // Se a tarefa for encontrada, atualiza os dados na posição correspondente
-      this.tasks[taskIndex] = task;
-      return;
+    if (!foundTask) {
+      throw new HttpException(
+        `Task with id ${task.id} not found!`,
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
-    // Se a tarefa não for encontrada, lança uma exceção HTTP 400 (Bad Request)
-    throw new HttpException(
-      `Task with id ${task.id} not found`,
-      HttpStatus.BAD_REQUEST,
-    );
+    await this.taskRepository.update(id, this.mapDoToEntity(task));
   }
 
-  remove(id: string) {
-    // Encontra o índice da tarefa na lista com base no ID
-    const taskIndex = this.tasks.findIndex((t) => t.id === id);
+  async remove(id: string) {
+    const result = await this.taskRepository.delete(id);
 
-    if (taskIndex >= 0) {
-      // Se a tarefa for encontrada, remove-a da lista
-      this.tasks.splice(taskIndex, 1);
-      return;
+    if (!result.affected) {
+      throw new HttpException(
+        `Task with id ${id} not found`,
+        HttpStatus.BAD_REQUEST,
+      );
     }
+  }
 
-    // Se a tarefa não for encontrada, lança uma exceção HTTP 400 (Bad Request)
-    throw new HttpException(
-      `Task with id ${id} not found`,
-      HttpStatus.BAD_REQUEST,
-    );
+  private mapEntityToDto(taskEntity: TaskEntity): TaskDto {
+    return {
+      id: taskEntity.id!,
+      title: taskEntity.title,
+      description: taskEntity.description,
+      expirationDate: taskEntity.expirationDate,
+      status: TaskStatusEnum[taskEntity.status],
+    };
+  }
+
+  private mapDoToEntity(taskDto: TaskDto): Partial<TaskEntity> {
+    return {
+      title: taskDto.title,
+      description: taskDto.description,
+      expirationDate: taskDto.expirationDate,
+      status: taskDto.status.toString(),
+    };
   }
 }

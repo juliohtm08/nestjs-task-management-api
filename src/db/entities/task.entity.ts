@@ -5,7 +5,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 export class TaskEntity {
   // Define a coluna 'id' como chave primária, gerada automaticamente no formato UUID
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id?: string;
 
   // Define a coluna 'title' do tipo varchar
   @Column({ type: 'varchar' })

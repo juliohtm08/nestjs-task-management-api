@@ -19,8 +19,8 @@ export class AuthService {
     ); // Define o tempo de expiração do JWT, com fallback de 3600 segundos
   }
 
-  signIn(username: string, password: string): AuthResponseDto {
-    const foundUser = this.userService.findByUserName(username); // Busca o usuário pelo nome
+  async signIn(username: string, password: string): Promise<AuthResponseDto> {
+    const foundUser = await this.userService.findByUserName(username); // Busca o usuário pelo nome
 
     if (!foundUser || !bcryptCompareSync(password, foundUser.password)) {
       throw new UnauthorizedException(); // Lança uma exceção se o usuário não existir ou a senha estiver incorreta

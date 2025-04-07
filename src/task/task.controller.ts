@@ -9,43 +9,43 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { FindAllParameters, TaskDto } from './task.dto';
+import { FindAllParameters, TaskDto, TaskRouteParameters } from './task.dto';
 import { TaskService } from './task.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 
 @UseGuards(AuthGuard)
-@Controller('task') // Define um controlador para a rota '/task'
+@Controller('task')
 export class TaskController {
   // Injeta o serviço de tarefas no controlador para gerenciar as operações relacionadas
   constructor(private readonly taskService: TaskService) {}
 
-  @Post() // Define um endpoint HTTP POST para criar uma nova tarefa
-  create(@Body() task: TaskDto) {
+  @Post()
+  async create(@Body() task: TaskDto): Promise<TaskDto> {
     // Recebe os dados da requisição no corpo e os passa para o serviço de tarefas
-    this.taskService.create(task);
+    return await this.taskService.create(task);
   }
 
-  @Get('/:id') // Define um endpoint HTTP GET para buscar uma tarefa pelo ID
-  findById(@Param('id') id: string): TaskDto {
+  @Get('/:id')
+  async findById(@Param('id') id: string): Promise<TaskDto> {
     // Extrai o parâmetro 'id' da URL e chama o serviço para encontrar a tarefa correspondente
-    return this.taskService.findById(id);
+    return await this.taskService.findById(id);
   }
 
-  @Get() // Define um endpoint HTTP GET para buscar todas as tarefas com parâmetros opcionais de filtro
-  findAll(@Query() params: FindAllParameters): TaskDto[] {
+  @Get()
+  async findAll(@Query() params: FindAllParameters): Promise<TaskDto[]> {
     // Passa os parâmetros opcionais de busca para o serviço e retorna a lista de tarefas filtradas
-    return this.taskService.findAll(params);
+    return await this.taskService.findAll(params);
   }
 
-  @Put() // Define um endpoint HTTP PUT para atualizar uma tarefa existente
-  update(@Body() task: TaskDto) {
+  @Put('/:id')
+  async update(@Param() params: TaskRouteParameters, @Body() task: TaskDto) {
     // Recebe os dados atualizados da tarefa no corpo da requisição e os passa para o serviço
-    this.taskService.update(task);
+    await this.taskService.update(params.id, task);
   }
 
-  @Delete('/:id') // Define um endpoint HTTP DELETE para remover uma tarefa pelo ID
-  remove(@Param('id') id: string) {
+  @Delete('/:id')
+  async remove(@Param('id') id: string) {
     // Chama o serviço para remover a tarefa com base no ID fornecido
-    return this.taskService.remove(id);
+    return await this.taskService.remove(id);
   }
 }
